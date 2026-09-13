@@ -5,6 +5,12 @@ set -m   # job control: each background job gets its own process group,
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$SCRIPT_PATH")"
 
+# install.sh's Go install only gets onto PATH via ~/.profile, which login
+# shells source but the non-login shell spawned by the docker re-exec below
+# (or any other non-login invocation of this script) won't. Set it explicitly
+# so `go run` doesn't depend on how this script happened to be invoked.
+export PATH="$PATH:/usr/local/go/bin"
+
 # Getting docker group membership to actually apply normally needs a fresh
 # login after install.sh adds the user to the group. Rather than making the
 # user do that (or run sg/newgrp themselves), detect it here and transparently
