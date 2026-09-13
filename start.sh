@@ -2,7 +2,28 @@
 set -euo pipefail
 set -m   # job control: each background job gets its own process group,
          # so cleanup() can kill `go run`'s forked child too, not just the launcher.
-cd "$(dirname "$0")"
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+cd "$(dirname "$SCRIPT_PATH")"
+
+# Getting docker group membership to actually apply normally needs a fresh
+# login after install.sh adds the user to the group. Rather than making the
+# user do that (or run sg/newgrp themselves), detect it here and transparently
+# re-exec this same script under the docker group.
+if ! docker info >/dev/null 2>&1; then
+	if ! id -nG "$USER" 2>/dev/null | tr ' ' '\n' | grep -qx docker; then
+		echo "==> Adding $USER to the docker group (one-time setup)..."
+		sudo usermod -aG docker "$USER"
+	fi
+
+	if [ "${CHAMADO_DOCKER_REEXEC:-0}" = "1" ]; then
+		echo "Still can't reach the Docker daemon. Is it installed and running?" >&2
+		echo "Try: sudo systemctl status docker" >&2
+		exit 1
+	fi
+
+	echo "==> Applying docker group access for this run (no logout needed)..."
+	CHAMADO_DOCKER_REEXEC=1 exec sg docker -c "$SCRIPT_PATH"
+fi
 
 SERVER_DIR="chamadoServer"
 FRONT_DIR="chamadoFront"
