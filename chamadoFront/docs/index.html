@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chamado — Abrir Chamado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse 600px 400px at 50% 100%, #0A1A0A 0%, #050805 60%, #000 100%);
+      background-color: #000;
+      color: #EDE8D6;
+    }
+
+    /* ── EMBLEM ── */
+    .emblem { margin-bottom: 1.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .emblem svg { width: 54px; height: 54px; }
+    .emblem .title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #EDE8D6;
+    }
+    .emblem .title span { color: #C9A227; }
+    .emblem .sub {
+      font-size: 0.66rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(201,162,39,0.65);
+    }
+
+    /* ── CARD ── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+      background: #0B0F08;
+      border: 1px solid rgba(201,162,39,0.22);
+      border-top: 2px solid #C9A227;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+
+    label {
+      display: block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #D8B23A;
+      margin-bottom: 0.4rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: #000;
+      border: 1px solid rgba(201,162,39,0.2);
+      color: #EDE8D6;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.15s;
+    }
+    textarea { min-height: 90px; }
+    input::placeholder, textarea::placeholder { color: rgba(237,232,214,0.18); }
+    input:focus, textarea:focus { border-color: rgba(201,162,39,0.6); }
+    input.invalid { border-color: rgba(229,115,115,0.6); }
+
+    /* ── SECTION COMBOBOX ── */
+    .combo { position: relative; }
+    .combo-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #0B0F08;
+      border: 1px solid rgba(201,162,39,0.4);
+      z-index: 10;
+    }
+    .combo-item {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(201,162,39,0.08);
+    }
+    .combo-item:last-child { border-bottom: none; }
+    .combo-item:hover, .combo-item.active { background: rgba(201,162,39,0.12); }
+    .combo-item .code { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: #D8B23A; font-size: 0.85rem; }
+    .combo-item .full { font-size: 0.72rem; color: rgba(237,232,214,0.5); margin-left: 0.4rem; }
+    .combo-empty { padding: 0.6rem 0.75rem; font-size: 0.78rem; color: rgba(237,232,214,0.35); }
+
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #C9A227;
+      border: none;
+      color: #14170D;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover  { background: #E0B830; }
+    button:active { background: #A8871C; }
+    button:disabled { opacity: 0.5; cursor: default; }
+
+    .response {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      display: none;
+      padding: 0.7rem 0.9rem;
+      border-left: 2px solid transparent;
+    }
+    .response.visible { display: block; }
+    .response.ok  { color: rgba(129,199,132,0.9); border-color: rgba(129,199,132,0.6); background: rgba(129,199,132,0.06); }
+    .response.err { color: rgba(229,115,115,0.9); border-color: rgba(229,115,115,0.6); background: rgba(229,115,115,0.06); }
+
+    .footer-link {
+      margin-top: 1.6rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .footer-link a { color: rgba(201,162,39,0.7); text-decoration: none; border-bottom: 1px solid rgba(201,162,39,0.3); }
+    .footer-link a:hover { color: #E0B830; }
+
+    /* ── CONSULTA POR SEÇÃO ── */
+    .query-card { max-width: 640px; margin-top: 1.6rem; }
+    .query-row { display: flex; gap: 0.6rem; align-items: flex-end; }
+    .query-row .field { flex: 1; margin-bottom: 0; }
+    .query-row button { width: auto; margin-top: 0; padding: 0.65rem 1.2rem; white-space: nowrap; }
+
+    .ticket-list { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .ticket-item {
+      border: 1px solid rgba(201,162,39,0.15);
+      border-left: 2px solid rgba(201,162,39,0.4);
+      padding: 0.7rem 0.9rem;
+    }
+    .ticket-item .row1 { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; }
+    .ticket-item .num { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: #D8B23A; }
+    .ticket-item .desc { font-size: 0.82rem; color: rgba(237,232,214,0.7); white-space: pre-wrap; }
+    .ticket-item .meta { font-size: 0.68rem; color: rgba(237,232,214,0.35); margin-top: 0.3rem; letter-spacing: 0.05em; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+    }
+    .badge.aberto        { color: #E5A24A; border-color: rgba(229,162,74,0.5); }
+    .badge.em_andamento  { color: #64B5F6; border-color: rgba(100,181,246,0.5); }
+    .badge.concluido     { color: #81C784; border-color: rgba(129,199,132,0.5); }
+    .badge.cancelado     { color: #E57373; border-color: rgba(229,115,115,0.5); }
+  </style>
+</head>
+<body>
+
+  <div class="emblem">
+    <svg viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="46" stroke="#C9A227" stroke-width="2" opacity="0.55"/>
+      <path d="M50 14 L59 39 L86 39 L64 55 L72 80 L50 64 L28 80 L36 55 L14 39 L41 39 Z"
+            fill="#C9A227"/>
+    </svg>
+    <div class="title"><span>CHAMADO</span></div>
+    <div class="sub">Manutenção Eletrônica &middot; Exército Brasileiro</div>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label for="name">Nome do Solicitante</label>
+      <input id="name" type="text" placeholder="Nome completo" autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="section">Seção</label>
+      <div class="combo">
+        <input id="section" type="text" placeholder="Sigla ou nome da seção (ex: S1, almoxarifado...)" autocomplete="off">
+        <div class="combo-list" id="sectionList" hidden></div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="description">Descrição do Problema</label>
+      <textarea id="description" placeholder="Descreva o equipamento e o defeito apresentado"></textarea>
+    </div>
+    <button id="btn" onclick="abrirChamado()">Abrir Chamado</button>
+    <div class="response" id="resp"></div>
+  </div>
+
+  <div class="card query-card">
+    <div class="query-row">
+      <div class="field">
+        <label for="querySection">Consultar Chamados por Seção</label>
+        <div class="combo">
+          <input id="querySection" type="text" placeholder="Sigla ou nome da seção" autocomplete="off">
+          <div class="combo-list" id="querySectionList" hidden></div>
+        </div>
+      </div>
+      <button id="queryBtn" onclick="consultarSecao()">Buscar</button>
+    </div>
+    <div class="response" id="queryResp"></div>
+    <div class="ticket-list" id="ticketList"></div>
+  </div>
+
+  <div class="footer-link"><a href="login.html">Acesso da Equipe Técnica</a></div>
+
+  <script>
+    // Same host the page was loaded from, so this works whether opened via
+    // localhost, a LAN IP, or a public IP/domain — only the port differs.
+    const BASE = `${window.location.protocol}//${window.location.hostname}:8083`;
+
+    const SECTIONS = [
+      "TLM", "S1", "S2", "S3", "PO",
+      "2-SGTE", "1-SGTE", "BC-SGTE",
+      "2-ST", "1-ST", "BC-ST",
+      "SPP", "FISC", "RANCHO", "HT", "GD", "ALMOX", "TSR", "Indefinido"
+    ];
+
+    // Full names people might type instead of the abbreviation. S1/S2/S3,
+    // SPP and FISC are left out on purpose: nobody spells those out.
+    const SECTION_FULL = {
+      "TLM":      "Telemática",
+      "PO":       "Pelotão de Obras Gerais",
+      "GD":       "Guarda",
+      "ALMOX":    "Almoxarifado",
+      "HT":       "Hotel de Trânsito",
+      "TSR":      "Tesouraria",
+      "2-SGTE":   "Sargenteação da Segunda Bateria de Mísseis",
+      "1-SGTE":   "Sargenteação da Primeira Bateria de Mísseis",
+      "BC-SGTE":  "Sargenteação da Bateria Comando",
+      "2-ST":     "Subtenência da Segunda Bateria de Mísseis",
+      "1-ST":     "Subtenência da Primeira Bateria de Mísseis",
+      "BC-ST":    "Subtenência da Bateria Comando"
+    };
+
+    function normalize(s) {
+      return (s || "")
+        .normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function matchingSections(query) {
+      const q = normalize(query);
+      if (!q) return SECTIONS;
+      return SECTIONS.filter(code =>
+        normalize(code).includes(q) || normalize(SECTION_FULL[code]).includes(q)
+      );
+    }
+
+    function resolveSection(query) {
+      const q = normalize(query);
+      return SECTIONS.find(code => normalize(code) === q || normalize(SECTION_FULL[code]) === q) || null;
+    }
+
+    function setupSectionCombo(inputId, listId) {
+      const input = document.getElementById(inputId);
+      const list  = document.getElementById(listId);
+      let activeIndex = -1;
+
+      function render(matches) {
+        activeIndex = -1;
+        if (!matches.length) {
+          list.innerHTML = `<div class="combo-empty">Nenhuma seção encontrada</div>`;
+        } else {
+          list.innerHTML = matches.map(code => `
+            <div class="combo-item" data-code="${code}">
+              <span class="code">${code}</span>${SECTION_FULL[code] ? `<span class="full">${SECTION_FULL[code]}</span>` : ""}
+            </div>
+          `).join("");
+        }
+        list.hidden = false;
+      }
+
+      function close() { list.hidden = true; }
+
+      function choose(code) {
+        input.value = code;
+        input.classList.remove("invalid");
+        close();
+      }
+
+      input.addEventListener("focus", () => render(matchingSections(input.value)));
+      input.addEventListener("input", () => {
+        input.classList.remove("invalid");
+        render(matchingSections(input.value));
+      });
+
+      input.addEventListener("keydown", (e) => {
+        const items = list.querySelectorAll(".combo-item");
+        if (list.hidden || !items.length) return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          activeIndex = Math.min(activeIndex + 1, items.length - 1);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          activeIndex = Math.max(activeIndex - 1, 0);
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          const target = activeIndex >= 0 ? items[activeIndex] : items[0];
+          if (target) choose(target.dataset.code);
+          return;
+        } else if (e.key === "Escape") {
+          close();
+          return;
+        } else {
+          return;
+        }
+        items.forEach(i => i.classList.remove("active"));
+        items[activeIndex].classList.add("active");
+      });
+
+      list.addEventListener("mousedown", (e) => {
+        const item = e.target.closest(".combo-item");
+        if (item) choose(item.dataset.code);
+      });
+
+      input.addEventListener("blur", () => {
+        setTimeout(() => {
+          close();
+          const value = input.value.trim();
+          if (!value) return;
+          const resolved = resolveSection(value);
+          if (resolved) {
+            input.value = resolved;
+            input.classList.remove("invalid");
+          } else {
+            input.classList.add("invalid");
+          }
+        }, 150);
+      });
+    }
+
+    setupSectionCombo("section", "sectionList");
+    setupSectionCombo("querySection", "querySectionList");
+
+    async function abrirChamado() {
+      const name        = document.getElementById("name").value.trim();
+      const section     = resolveSection(document.getElementById("section").value.trim());
+      const description = document.getElementById("description").value.trim();
+      const btn         = document.getElementById("btn");
+
+      if (!name || !description) {
+        show("Preencha todos os campos.", "err");
+        return;
+      }
+      if (!section) {
+        show("Selecione uma seção válida da lista.", "err");
+        document.getElementById("section").classList.add("invalid");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+      hide();
+
+      try {
+        const res = await fetch(BASE + "/chamado", {
+          method: "POST",
+          headers: {
+            "Name":        encodeURIComponent(name),
+            "Section":     encodeURIComponent(section),
+            "Description": encodeURIComponent(description)
+          }
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (json?.Code === 200 && json?.Number) {
+          show(`Chamado Nº ${json.Number} aberto com status "${json.Status}".\nGuarde este número para acompanhamento junto à seção responsável.`, "ok");
+          document.getElementById("name").value = "";
+          document.getElementById("section").value = "";
+          document.getElementById("description").value = "";
+        } else {
+          show(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? "falha ao abrir chamado"}`, "err");
+        }
+      } catch (err) {
+        show("Falha na requisição:\n" + err, "err");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Abrir Chamado";
+      }
+    }
+
+    function show(text, cls) {
+      const el = document.getElementById("resp");
+      el.textContent = text;
+      el.className = "response visible " + cls;
+    }
+
+    function hide() {
+      document.getElementById("resp").className = "response";
+    }
+
+    function badgeLabel(status) {
+      const labels = { aberto: "Aberto", em_andamento: "Em Andamento", concluido: "Concluído", cancelado: "Cancelado" };
+      return labels[status] || status;
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return isNaN(d) ? (iso || "—") : d.toLocaleString("pt-BR");
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str ?? "";
+      return div.innerHTML;
+    }
+
+    async function consultarSecao() {
+      const section = resolveSection(document.getElementById("querySection").value.trim());
+      const btn     = document.getElementById("queryBtn");
+      const list    = document.getElementById("ticketList");
+
+      if (!section) {
+        showQuery("Selecione uma seção válida da lista.", "err");
+        document.getElementById("querySection").classList.add("invalid");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Buscando...";
+      hideQuery();
+      list.innerHTML = "";
+
+      try {
+        const res = await fetch(BASE + "/chamado/public", {
+          method: "GET",
+          headers: { "Section": encodeURIComponent(section) }
+        });
+        const json = await res.json().catch(() => null);
+
+        if (json?.Code === 200) {
+          const chamados = json.Chamados || [];
+          if (!chamados.length) {
+            showQuery("Nenhum chamado encontrado para esta seção.", "");
+          } else {
+            showQuery(`${chamados.length} chamado(s) encontrado(s).`, "ok");
+            list.innerHTML = chamados.map(c => `
+              <div class="ticket-item">
+                <div class="row1">
+                  <span class="num">Nº ${c.Number}</span>
+                  <span class="badge ${c.Status}">${badgeLabel(c.Status)}</span>
+                </div>
+                <div class="desc">${escapeHtml(c.Description)}</div>
+                ${c.Response ? `<div class="desc">Resposta: ${escapeHtml(c.Response)}</div>` : ""}
+                <div class="meta">${escapeHtml(c.Name)} &middot; ${formatDate(c.CreatedAt)}</div>
+              </div>
+            `).join("");
+          }
+        } else {
+          showQuery(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? "falha ao buscar"}`, "err");
+        }
+      } catch (err) {
+        showQuery("Falha na requisição:\n" + err, "err");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Buscar";
+      }
+    }
+
+    function showQuery(text, cls) {
+      const el = document.getElementById("queryResp");
+      el.textContent = text;
+      el.className = "response visible " + cls;
+    }
+
+    function hideQuery() {
+      document.getElementById("queryResp").className = "response";
+    }
+  </script>
+</body>
+</html>

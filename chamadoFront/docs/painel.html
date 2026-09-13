@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chamado — Painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse 600px 400px at 50% 100%, #0A1A0A 0%, #050805 60%, #000 100%);
+      background-color: #000;
+      color: #EDE8D6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .page-title span { color: #C9A227; }
+
+    .page-sub {
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(201,162,39,0.65);
+      margin-top: 0.2rem;
+    }
+
+    .logout {
+      background: transparent;
+      border: 1px solid rgba(201,162,39,0.3);
+      color: rgba(237,232,214,0.7);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .logout:hover { border-color: #C9A227; color: #EDE8D6; }
+
+    .controls {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1.4rem;
+    }
+
+    select, .controls input {
+      padding: 0.55rem 0.85rem;
+      background: #0B0F08;
+      border: 1px solid rgba(201,162,39,0.22);
+      color: #EDE8D6;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 1.8rem;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #C9A227 50%),
+        linear-gradient(135deg, #C9A227 50%, transparent 50%);
+      background-position: calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px);
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+    select option {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      background: #0B0F08;
+      color: #EDE8D6;
+    }
+    select:focus, .controls input:focus { border-color: rgba(201,162,39,0.6); }
+
+    .btn {
+      padding: 0.55rem 1rem;
+      background: #C9A227;
+      border: none;
+      color: #14170D;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover  { background: #E0B830; }
+    .btn:active { background: #A8871C; }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(201,162,39,0.3);
+      color: rgba(237,232,214,0.75);
+    }
+    .btn.ghost:hover { border-color: #C9A227; color: #EDE8D6; }
+    .btn.danger { background: rgba(229,115,115,0.85); color: #1A0505; }
+    .btn.danger:hover { background: #E57373; }
+
+    table {
+      width: 100%;
+      max-width: 980px;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      text-align: left;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #D8B23A;
+      padding: 0.6rem 0.7rem;
+      border-bottom: 1px solid rgba(201,162,39,0.3);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(201,162,39,0.1);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(201,162,39,0.05); }
+    tbody td { padding: 0.7rem; vertical-align: top; }
+
+    .desc-cell { max-width: 260px; color: rgba(237,232,214,0.75); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+    .badge.aberto        { color: #E5A24A; border-color: rgba(229,162,74,0.5); }
+    .badge.em_andamento  { color: #64B5F6; border-color: rgba(100,181,246,0.5); }
+    .badge.concluido     { color: #81C784; border-color: rgba(129,199,132,0.5); }
+    .badge.cancelado     { color: #E57373; border-color: rgba(229,115,115,0.5); }
+
+    .edit-row td { background: #0B0F08; padding: 1rem 0.7rem 1.4rem; }
+    .edit-grid { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .edit-grid .field { flex: 1 1 220px; }
+
+    label {
+      display: block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #D8B23A;
+      margin-bottom: 0.35rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      padding: 0.6rem 0.75rem;
+      background: #000;
+      border: 1px solid rgba(201,162,39,0.2);
+      color: #EDE8D6;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      resize: vertical;
+    }
+    textarea:focus { border-color: rgba(201,162,39,0.6); }
+
+    .edit-actions { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
+
+    .status-msg {
+      margin-top: 2rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(237,232,214,0.3);
+    }
+    .status-msg.ok  { color: rgba(129,199,132,0.7); }
+    .status-msg.err { color: rgba(229,115,115,0.7); }
+
+    .empty {
+      padding: 2rem;
+      text-align: center;
+      color: rgba(237,232,214,0.35);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div>
+      <div class="page-title">Painel <span>Técnico</span></div>
+      <div class="page-sub" id="whoami">Carregando...</div>
+    </div>
+    <div style="display:flex; gap:0.6rem; align-items:center;">
+      <button class="btn ghost" id="addTechBtn" onclick="location.href='tecnicos.html'" hidden>Adicionar Técnico</button>
+      <button class="logout" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="statusFilter" onchange="loadChamados()">
+      <option value="">Todos os Status</option>
+      <option value="aberto">Aberto</option>
+      <option value="em_andamento">Em Andamento</option>
+      <option value="concluido">Concluído</option>
+      <option value="cancelado">Cancelado</option>
+    </select>
+    <button class="btn ghost" onclick="loadChamados()">Atualizar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nº</th>
+        <th>Nome</th>
+        <th>Seção</th>
+        <th>Descrição</th>
+        <th>Status</th>
+        <th>Aberto em</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div class="status-msg" id="status"></div>
+
+  <script>
+    // Same host the page was loaded from, so this works whether opened via
+    // localhost, a LAN IP, or a public IP/domain — only the port differs.
+    const BASE = `${window.location.protocol}//${window.location.hostname}:8083`;
+    const token = localStorage.getItem("chamadoToken") || "";
+    const role  = localStorage.getItem("chamadoRole") || "";
+    const team  = localStorage.getItem("chamadoTeam") || "";
+    const user  = localStorage.getItem("chamadoUser") || "";
+
+    if (!token) window.location.href = "login.html";
+
+    const UNIT_NAME = "2GAAAE";
+
+    document.getElementById("whoami").textContent =
+      `${user} · ${team ? team + " " + UNIT_NAME : "—"} · ${role || "—"}`;
+
+    if (role === "admin") {
+      document.getElementById("addTechBtn").hidden = false;
+    }
+
+    let openRow = null;
+
+    function setStatus(msg, cls) {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.className = "status-msg " + (cls || "");
+    }
+
+    function formatDate(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      if (isNaN(d)) return iso;
+      return d.toLocaleString("pt-BR");
+    }
+
+    function badgeLabel(status) {
+      const labels = { aberto: "Aberto", em_andamento: "Em Andamento", concluido: "Concluído", cancelado: "Cancelado" };
+      return labels[status] || status;
+    }
+
+    async function loadChamados() {
+      const statusFilter = document.getElementById("statusFilter").value;
+
+      setStatus("Carregando...", "");
+      openRow = null;
+
+      const headers = {
+        "Authorization": token,
+        "Mode": "all"
+      };
+      if (statusFilter) headers["Status"] = statusFilter;
+
+      try {
+        const res  = await fetch(BASE + "/chamado", { method: "GET", headers });
+        const json = await res.json().catch(() => null);
+
+        if (json?.Code === 200) {
+          renderTable(json.Chamados || []);
+          setStatus(`${(json.Chamados || []).length} chamado(s)`, "ok");
+        } else if (res.status === 401 || res.status === 403) {
+          setStatus("Sessão expirada ou sem permissão. Faça login novamente.", "err");
+          setTimeout(logout, 1500);
+        } else {
+          setStatus(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? ""}`, "err");
+        }
+      } catch (err) {
+        setStatus("Falha na requisição: " + err, "err");
+      }
+    }
+
+    function renderTable(chamados) {
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+
+      if (!chamados.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhum chamado encontrado.</td></tr>`;
+        return;
+      }
+
+      chamados.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${c.Number}</td>
+          <td>${escapeHtml(c.Name)}</td>
+          <td>${escapeHtml(c.Section)}</td>
+          <td class="desc-cell">${escapeHtml(c.Description)}</td>
+          <td><span class="badge ${c.Status}">${badgeLabel(c.Status)}</span></td>
+          <td>${formatDate(c.CreatedAt)}</td>
+        `;
+        tr.addEventListener("click", () => toggleEdit(c, tr));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str ?? "";
+      return div.innerHTML;
+    }
+
+    function toggleEdit(chamado, tr) {
+      if (openRow) { openRow.remove(); openRow = null; }
+
+      const editTr = document.createElement("tr");
+      editTr.className = "edit-row";
+      const canDelete = role === "admin" || chamado.Section === team;
+
+      editTr.innerHTML = `
+        <td colspan="6">
+          <div class="edit-grid">
+            <div class="field" style="flex-basis:100%;">
+              <label>Status</label>
+              <select id="editStatus">
+                <option value="aberto">Aberto</option>
+                <option value="em_andamento">Em Andamento</option>
+                <option value="concluido">Concluído</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+            <div class="field" style="flex-basis:100%;">
+              <label>Resposta</label>
+              <textarea id="editResponse" placeholder="Descreva o diagnóstico ou solução aplicada">${escapeHtml(chamado.Response)}</textarea>
+            </div>
+          </div>
+          <div class="edit-actions">
+            <button class="btn" id="saveBtn">Salvar</button>
+            ${canDelete ? '<button class="btn danger" id="delBtn">Excluir</button>' : ""}
+            <button class="btn ghost" id="cancelBtn">Cancelar</button>
+          </div>
+        </td>
+      `;
+
+      tr.after(editTr);
+      openRow = editTr;
+
+      editTr.querySelector("#editStatus").value = chamado.Status;
+      editTr.querySelector("#saveBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        saveChamado(chamado.Number, editTr);
+      });
+      editTr.querySelector("#cancelBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        editTr.remove();
+        openRow = null;
+      });
+      const delBtn = editTr.querySelector("#delBtn");
+      if (delBtn) {
+        delBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteChamado(chamado.Number);
+        });
+      }
+      editTr.addEventListener("click", (e) => e.stopPropagation());
+    }
+
+    async function saveChamado(number, editTr) {
+      const status   = editTr.querySelector("#editStatus").value;
+      const response = editTr.querySelector("#editResponse").value;
+
+      setStatus("Salvando...", "");
+      try {
+        const res = await fetch(BASE + "/chamado", {
+          method: "PUT",
+          headers: {
+            "Authorization": token,
+            "Number": String(number),
+            "Status": status,
+            "Response": encodeURIComponent(response)
+          }
+        });
+        const json = await res.json().catch(() => null);
+        if (json?.Code === 200) {
+          setStatus(`Chamado Nº ${number} atualizado.`, "ok");
+          loadChamados();
+        } else {
+          setStatus(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? ""}`, "err");
+        }
+      } catch (err) {
+        setStatus("Falha na requisição: " + err, "err");
+      }
+    }
+
+    async function deleteChamado(number) {
+      if (!confirm(`Excluir o chamado Nº ${number}? Esta ação não pode ser desfeita.`)) return;
+
+      setStatus("Excluindo...", "");
+      try {
+        const res = await fetch(BASE + "/chamado", {
+          method: "DELETE",
+          headers: { "Authorization": token, "Number": String(number) }
+        });
+        const json = await res.json().catch(() => null);
+        if (json?.Code === 200) {
+          setStatus(`Chamado Nº ${number} excluído.`, "ok");
+          loadChamados();
+        } else {
+          setStatus(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? ""}`, "err");
+        }
+      } catch (err) {
+        setStatus("Falha na requisição: " + err, "err");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("chamadoToken");
+      localStorage.removeItem("chamadoUser");
+      localStorage.removeItem("chamadoRole");
+      localStorage.removeItem("chamadoTeam");
+      window.location.href = "login.html";
+    }
+
+    loadChamados();
+  </script>
+</body>
+</html>

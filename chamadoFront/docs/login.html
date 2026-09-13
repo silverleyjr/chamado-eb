@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chamado — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse 600px 400px at 50% 100%, #0A1A0A 0%, #050805 60%, #000 100%);
+      background-color: #000;
+      color: #EDE8D6;
+    }
+
+    .emblem { margin-bottom: 1.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .emblem svg { width: 54px; height: 54px; }
+    .emblem .title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #EDE8D6;
+    }
+    .emblem .title span { color: #C9A227; }
+    .emblem .sub {
+      font-size: 0.66rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(201,162,39,0.65);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      padding: 2rem;
+      background: #0B0F08;
+      border: 1px solid rgba(201,162,39,0.22);
+      border-top: 2px solid #C9A227;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+
+    label {
+      display: block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #D8B23A;
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: #000;
+      border: 1px solid rgba(201,162,39,0.2);
+      color: #EDE8D6;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input::placeholder { color: rgba(237,232,214,0.18); }
+    input:focus { border-color: rgba(201,162,39,0.6); }
+
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #C9A227;
+      border: none;
+      color: #14170D;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover  { background: #E0B830; }
+    button:active { background: #A8871C; }
+    button:disabled { opacity: 0.5; cursor: default; }
+
+    .response {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      display: none;
+      padding: 0.7rem 0.9rem;
+      border-left: 2px solid transparent;
+    }
+    .response.visible { display: block; }
+    .response.ok  { color: rgba(129,199,132,0.9); border-color: rgba(129,199,132,0.6); background: rgba(129,199,132,0.06); }
+    .response.err { color: rgba(229,115,115,0.9); border-color: rgba(229,115,115,0.6); background: rgba(229,115,115,0.06); }
+
+    .footer-link {
+      margin-top: 1.6rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .footer-link a { color: rgba(201,162,39,0.7); text-decoration: none; border-bottom: 1px solid rgba(201,162,39,0.3); }
+    .footer-link a:hover { color: #E0B830; }
+  </style>
+</head>
+<body>
+
+  <div class="emblem">
+    <svg viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="46" stroke="#C9A227" stroke-width="2" opacity="0.55"/>
+      <path d="M50 14 L59 39 L86 39 L64 55 L72 80 L50 64 L28 80 L36 55 L14 39 L41 39 Z"
+            fill="#C9A227"/>
+    </svg>
+    <div class="title"><span>CHAMADO</span></div>
+    <div class="sub">Acesso da Equipe Técnica</div>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label for="loginName">Nome de Usuário</label>
+      <input id="loginName" type="text" placeholder="Nome completo" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="pwd">Senha</label>
+      <input id="pwd" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="btn" onclick="login()">Entrar</button>
+    <div class="response" id="resp"></div>
+  </div>
+
+  <div class="footer-link"><a href="index.html">Abrir um Chamado</a></div>
+
+  <script>
+    // Same host the page was loaded from, so this works whether opened via
+    // localhost, a LAN IP, or a public IP/domain — only the port differs.
+    const BASE = `${window.location.protocol}//${window.location.hostname}:8083`;
+
+    // Decodes the JWT payload as UTF-8: atob() alone yields a byte-per-char
+    // string, so multi-byte characters (accents) must be re-assembled with
+    // TextDecoder or they come back mangled (e.g. "ç" -> "Â§").
+    function parseJwt(token) {
+      try {
+        const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        const bytes  = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+      } catch {
+        return null;
+      }
+    }
+
+    async function login() {
+      const name = document.getElementById("loginName").value.trim();
+      const pwd  = document.getElementById("pwd").value;
+      const btn  = document.getElementById("btn");
+
+      if (!name || !pwd) {
+        show("Preencha todos os campos.", "err");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Autenticando...";
+      hide();
+
+      try {
+        const res = await fetch(BASE + "/login", {
+          method: "GET",
+          headers: { "Name": encodeURIComponent(name), "Password": pwd }
+        });
+
+        const json  = await res.json().catch(() => null);
+        const code  = json?.Code ?? res.status;
+        const token = json?.Authorization ?? null;
+
+        if (token) {
+          const claims = parseJwt(token) || {};
+          localStorage.setItem("chamadoToken", token);
+          localStorage.setItem("chamadoUser", claims.userName || name);
+          localStorage.setItem("chamadoRole", claims.userRole || "");
+          localStorage.setItem("chamadoTeam", claims.team || "");
+          show(`Code: ${code}\nRedirecionando...`, "ok");
+          setTimeout(() => { window.location.href = "painel.html"; }, 500);
+        } else {
+          show(`Code: ${code}\n${json?.Message ?? "credenciais inválidas"}`, "err");
+        }
+      } catch (err) {
+        show("Falha na requisição:\n" + err, "err");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Entrar";
+      }
+    }
+
+    function show(text, cls) {
+      const el = document.getElementById("resp");
+      el.textContent = text;
+      el.className = "response visible " + cls;
+    }
+
+    function hide() {
+      document.getElementById("resp").className = "response";
+    }
+
+    document.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+  </script>
+</body>
+</html>
