@@ -48,6 +48,23 @@ echo "==> Starting API server on ${SERVER_PORT:-:8083}..."
 (cd "$SERVER_DIR/chamadoApi" && exec go run ./cmd/api) &
 PIDS+=($!)
 
+API_PORT="${SERVER_PORT:-:8083}"
+API_PORT="${API_PORT##*:}"
+
+echo "==> Waiting for the API to be ready..."
+until curl -s -o /dev/null "http://localhost:${API_PORT}/login"; do
+	sleep 1
+done
+
+echo "==> Ensuring a default admin account exists..."
+sql_escape() { printf '%s' "$1" | sed "s/'/''/g"; }
+ADMIN_NAME_SQL="$(sql_escape "${ADMIN_NAME:-Admin Geral}")"
+ADMIN_PASSWORD_SQL="$(sql_escape "${ADMIN_PASSWORD:-senha123}")"
+ADMIN_TEAM_SQL="$(sql_escape "${ADMIN_TEAM:-TLM}")"
+docker exec chamado-postgres psql -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-chamado-db}" \
+	-c "INSERT INTO usuarios (name, password, team, role) VALUES ('${ADMIN_NAME_SQL}', '${ADMIN_PASSWORD_SQL}', '${ADMIN_TEAM_SQL}', 'admin') ON CONFLICT (name) DO NOTHING;" \
+	> /dev/null
+
 echo "==> Starting frontend on 0.0.0.0:${FRONT_PORT}..."
 "./$FRONT_DIR/serve.sh" "$FRONT_PORT" &
 PIDS+=($!)
@@ -62,6 +79,7 @@ if [ -n "$IP" ]; then
 	echo "   Network: http://${IP}:${FRONT_PORT}/index.html"
 fi
 echo " API listening on port ${SERVER_PORT:-:8083}"
+echo " Admin login: ${ADMIN_NAME:-Admin Geral} / ${ADMIN_PASSWORD:-senha123}"
 echo " Press Ctrl+C to stop everything."
 echo "======================================================"
 echo
