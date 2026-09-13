@@ -13,6 +13,36 @@ import (
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	noAcessControl(w)
+
+	if r.Header.Get("Mode") == "all" {
+		role, _, ok := getRoleAndTeam(r)
+		if !ok || !isAdmin(role) {
+			api.UnauthorizedErrorHandler(w, errors.New("Only admins can list users"))
+			return
+		}
+		users, err := tools.GetAllUsers(tools.Database, r.Header.Get("Role"))
+		if err != nil {
+			api.InternalErrorHandler(w)
+			return
+		}
+		summaries := make([]api.UserSummary, 0, len(users))
+		for _, u := range users {
+			summaries = append(summaries, api.UserSummary{
+				Name:        u.Name,
+				Team:        u.Team,
+				Role:        u.Role,
+				TimeCreated: u.TimeCreated,
+			})
+		}
+		response := api.GetUsersResponse{Users: summaries, Code: http.StatusOK}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Error(err)
+			api.InternalErrorHandler(w)
+		}
+		return
+	}
+
 	name := decodedHeader(r, "Name")
 	if name == "" {
 		api.RequestErrorHandler(w, errors.New("Name is required"))

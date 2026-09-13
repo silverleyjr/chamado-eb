@@ -152,6 +152,29 @@ func GetUserData(database *sql.DB, name string) (UserData, error) {
 	return user, nil
 }
 
+func GetAllUsers(database *sql.DB, role string) ([]UserData, error) {
+	var rows *sql.Rows
+	var err error
+	if role == "" {
+		rows, err = database.Query("SELECT name, password, team, role, created FROM usuarios ORDER BY name")
+	} else {
+		rows, err = database.Query("SELECT name, password, team, role, created FROM usuarios WHERE role = ($1) ORDER BY name", role)
+	}
+	var users []UserData
+	if err != nil {
+		return users, errors.New("No matching rows")
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user UserData
+		if err := rows.Scan(&user.Name, &user.Password, &user.Team, &user.Role, &user.TimeCreated); err != nil {
+			return users, errors.New("scan failed")
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 // CHAMADOS
 
 func CreateChamado(database *sql.DB, chamado ChamadoData) (ChamadoData, error) {

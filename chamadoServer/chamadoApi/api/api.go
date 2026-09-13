@@ -32,6 +32,16 @@ type GetUserResponse struct {
 	TimeCreated string
 	Code        int
 }
+type UserSummary struct {
+	Name        string
+	Team        string
+	Role        string
+	TimeCreated string
+}
+type GetUsersResponse struct {
+	Users []UserSummary
+	Code  int
+}
 
 // SIMPLE RESPONSES
 type CodeResponse struct {

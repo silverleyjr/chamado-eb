@@ -117,6 +117,49 @@
     }
     .footer-link a { color: rgba(201,162,39,0.7); text-decoration: none; border-bottom: 1px solid rgba(201,162,39,0.3); }
     .footer-link a:hover { color: #E0B830; }
+
+    .list-card { margin-top: 1.4rem; }
+    .list-card h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #D8B23A;
+      margin-bottom: 1rem;
+    }
+    .tech-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .tech-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid rgba(201,162,39,0.15);
+      border-left: 2px solid rgba(201,162,39,0.4);
+    }
+    .tech-row .info { display: flex; flex-direction: column; gap: 0.15rem; }
+    .tech-row .name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem; }
+    .tech-row .team {
+      font-size: 0.65rem;
+      color: rgba(237,232,214,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tech-row button {
+      width: auto;
+      margin-top: 0;
+      padding: 0.4rem 0.9rem;
+      background: rgba(229,115,115,0.85);
+      color: #1A0505;
+      font-size: 0.72rem;
+    }
+    .tech-row button:hover { background: #E57373; }
+    .tech-empty {
+      padding: 0.8rem 0;
+      font-size: 0.78rem;
+      color: rgba(237,232,214,0.35);
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -142,6 +185,12 @@
     </div>
     <button id="btn" onclick="criarTecnico()">Adicionar Técnico</button>
     <div class="response" id="resp"></div>
+  </div>
+
+  <div class="card list-card">
+    <h2>Técnicos Cadastrados</h2>
+    <div class="response" id="listStatus"></div>
+    <div class="tech-list" id="techList"></div>
   </div>
 
   <div class="footer-link"><a href="painel.html">Voltar ao Painel</a></div>
@@ -189,6 +238,7 @@
           show(`Técnico "${name}" criado com sucesso.`, "ok");
           document.getElementById("techName").value = "";
           document.getElementById("techPassword").value = "";
+          loadTecnicos();
         } else if (res.status === 401 || res.status === 403) {
           show("Sessão expirada ou sem permissão. Faça login novamente.", "err");
           setTimeout(() => { window.location.href = "login.html"; }, 1500);
@@ -212,6 +262,78 @@
     function hide() {
       document.getElementById("resp").className = "response";
     }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str ?? "";
+      return div.innerHTML;
+    }
+
+    function showListStatus(text, cls) {
+      const el = document.getElementById("listStatus");
+      el.textContent = text;
+      el.className = "response visible " + cls;
+    }
+
+    async function loadTecnicos() {
+      const listEl = document.getElementById("techList");
+      try {
+        const res = await fetch(BASE + "/user", {
+          method: "GET",
+          headers: { "Authorization": token, "Mode": "all", "Role": "technician" }
+        });
+        const json = await res.json().catch(() => null);
+
+        if (json?.Code === 200) {
+          const users = json.Users || [];
+          listEl.innerHTML = users.length
+            ? users.map(u => `
+                <div class="tech-row" data-name="${escapeHtml(u.Name)}">
+                  <div class="info">
+                    <span class="name">${escapeHtml(u.Name)}</span>
+                    <span class="team">${escapeHtml(u.Team)}</span>
+                  </div>
+                  <button class="del-tech-btn">Excluir</button>
+                </div>
+              `).join("")
+            : `<div class="tech-empty">Nenhum técnico cadastrado.</div>`;
+          document.getElementById("listStatus").className = "response";
+        } else {
+          showListStatus(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? "falha ao listar técnicos"}`, "err");
+        }
+      } catch (err) {
+        showListStatus("Falha na requisição: " + err, "err");
+      }
+    }
+
+    document.getElementById("techList").addEventListener("click", (e) => {
+      const btn = e.target.closest(".del-tech-btn");
+      if (!btn) return;
+      const name = btn.closest(".tech-row").dataset.name;
+      excluirTecnico(name);
+    });
+
+    async function excluirTecnico(name) {
+      if (!confirm(`Excluir o técnico "${name}"? Esta ação não pode ser desfeita.`)) return;
+
+      try {
+        const res = await fetch(BASE + "/user", {
+          method: "DELETE",
+          headers: { "Authorization": token, "Name": encodeURIComponent(name) }
+        });
+        const json = await res.json().catch(() => null);
+
+        if (json?.Code === 200) {
+          loadTecnicos();
+        } else {
+          showListStatus(`Erro ${json?.Code ?? res.status}: ${json?.Message ?? "falha ao excluir técnico"}`, "err");
+        }
+      } catch (err) {
+        showListStatus("Falha na requisição: " + err, "err");
+      }
+    }
+
+    loadTecnicos();
   </script>
 </body>
 </html>
